@@ -23,17 +23,43 @@ class LoginScreen extends StatelessWidget {
 
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
-        if(state is SignInSuccessfulState) {
-          Navigator.pushReplacement(context, FadeTransitionAnimation(page: const HomeScreen()));
+        if(state is SignInSuccessfulState || state is GoogleSignInSuccessfulState) {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ), (route) => false);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(
+              "Welcome You Logged In Successful",
+              style: TextStyle(color: AppColors.white),
+            ),
+            backgroundColor: AppColors.green,
+            behavior: SnackBarBehavior.floating,
+          ),);}
+        if( state is SignInErrorState) {
+          final snackBar = SnackBar(
+            content: Text(
+              state.errorMessage,
+              style: const TextStyle(color: AppColors.white),
+            ),
+            backgroundColor: AppColors.red,
+            behavior: SnackBarBehavior.floating,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
-        if(state is SignInErrorState) {
-          print("Login Screen Message${"*-* " * 15}" );
-          print(state.errorMessage);
-          print("*-* " * 15 );
+        if( state is GoogleSignInErrorState) {
+          final snackBar = SnackBar(
+            content: Text(
+              state.errorMessage,
+              style: const TextStyle(color: AppColors.white),
+            ),
+            backgroundColor: AppColors.red,
+            behavior: SnackBarBehavior.floating,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       },
       builder: (context, state) {
-        AuthCubit _cubit = AuthCubit.get(context);
+        AuthCubit cubit = AuthCubit.get(context);
         return Scaffold(
           body: Stack(
             children: [
@@ -49,21 +75,20 @@ class LoginScreen extends StatelessWidget {
                         const AppLogo(),
                         const Text(
                           "Sign In",
-                          textScaleFactor: 1.3,
                           style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
                             letterSpacing: 2,
-                            color: AppColors.green,
+                            color: AppColors.darkPurple,
                           ),
                         ),
                         const Text(
                           "Enter your personal information",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.normal,
                             letterSpacing: 2,
-                            color: Colors.white,
+                            color: AppColors.black,
                           ),
                         ),
                         SizedBox(
@@ -71,44 +96,76 @@ class LoginScreen extends StatelessWidget {
                         ),
                         CustomAuthTextField(
                           title: "Email",
-                          controller: _cubit.email,
+                          controller: cubit.email,
                         ),
                         CustomAuthTextField(
                           title: "Password",
-                          controller: _cubit.password,
+                          controller: cubit.password,
                           show: true,
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1,
+                          height: MediaQuery.of(context).size.height * 0.02,
                         ),
                         AuthButton(
                           text: "Sign In",
                           onPressed: () async {
-                            await _cubit.signIn(SignInParameters(email: _cubit.email.text, password: _cubit.password.text));
+                            await cubit.signIn(SignInParameters(email: cubit.email.text, password: cubit.password.text));
                           },
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05,
+                          height: MediaQuery.of(context).size.height * 0.02,
+                        ),
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              text: "You have not an account, ",
+                              style: const TextStyle(
+                                color: AppColors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: "Sign Up",
+                                  style: const TextStyle(
+                                      color: AppColors.darkPurple,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.pushReplacement(
+                                          context,
+                                          FadeTransitionAnimation(
+                                              page: const RegisterScreen()));
+                                    },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02,
                         ),
                         Row(
                           children: [
                             Expanded(
                               child: Container(
                                 height: 2,
-                                color: AppColors.green,
+                                color: AppColors.darkPurple,
                               ),
                             ),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 8.0),
                               child: Text(
                                 "OR",
-                                style: TextStyle(color: AppColors.yellow),
+                                style: TextStyle(color: AppColors.darkPurple),
                               ),
                             ),
                             Expanded(
                               child: Container(
                                 height: 2,
-                                color: AppColors.green,
+                                color: AppColors.darkPurple,
                               ),
                             ),
                           ],
@@ -124,7 +181,9 @@ class LoginScreen extends StatelessWidget {
                                     "assets/images/google_icon.png"),
                                 tooltip: "Google",
                                 color: AppColors.grey,
-                                onPressed: () {}),
+                                onPressed: () async {
+                                  await cubit.googleSignIn();
+                                },),
                             AuthIconButton(
                                 icon: const Icon(FontAwesomeIcons.facebook),
                                 tooltip: "Facebook",
@@ -141,29 +200,6 @@ class LoginScreen extends StatelessWidget {
                                 color: Colors.black38,
                                 onPressed: () {}),
                           ],
-                        ),
-                        Center(
-                          child: RichText(
-                            textScaleFactor: 1.2,
-                            text: TextSpan(
-                              text: "You have not an account, ",
-                              children: [
-                                TextSpan(
-                                  text: "Sign Up",
-                                  style: const TextStyle(
-                                    color: AppColors.green,
-                                  ),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.pushReplacement(
-                                          context,
-                                          FadeTransitionAnimation(
-                                              page: const RegisterScreen()));
-                                    },
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -211,3 +247,4 @@ class AuthIconButton extends StatelessWidget {
     );
   }
 }
+//!!rfr_rm_899!!599&

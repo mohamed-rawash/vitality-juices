@@ -53,6 +53,27 @@ class SignInErrorState extends AuthState {
   List<Object?> get props => [];
 }
 
+class GoogleSignInLoadingState extends AuthState {
+  @override
+  List<Object?> get props => [];
+}
+class GoogleSignInSuccessfulState extends AuthState {
+  final UserAuthModel userAuthModel;
+
+  const GoogleSignInSuccessfulState({required this.userAuthModel});
+
+  @override
+  List<Object?> get props => [userAuthModel];
+}
+class GoogleSignInErrorState extends AuthState {
+  final String errorMessage;
+
+  const GoogleSignInErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [];
+}
+
 class SignOutSuccessfulState extends AuthState{
   @override
   // TODO: implement props

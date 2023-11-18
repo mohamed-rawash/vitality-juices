@@ -2,6 +2,7 @@
 import 'package:drinks_app/core/error/exception.dart';
 import 'package:drinks_app/domain/usecase/sign_up_usecase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../domain/usecase/sign_in_usecase.dart';
 
@@ -9,7 +10,7 @@ abstract class BaseUserAuthRemoteDataSource {
   Future<User> signUp(SignUpParameters parameters);
   Future<User> signIn(SignInParameters parameters);
   Future<void> signOut();
-  Future<void> googleSignIn();
+  Future<User> googleSignIn();
   Future<void> githubSignIn();
   Future<void> facebookSignIn();
   Future<void> twitterSignIn();
@@ -29,9 +30,32 @@ class UserAuthRemoteDataSource implements BaseUserAuthRemoteDataSource {
   }
 
   @override
-  Future<void> googleSignIn() {
-    // TODO: implement googleSignIn
-    throw UnimplementedError();
+  Future<User> googleSignIn() async {
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      if(userCredential.user != null) {
+        // Once signed in, return the UserCredential
+        return userCredential.user!;
+      } else {
+        throw ServerException(errorMessage: "Failed Login With Google");
+      }
+    } on FirebaseAuthException catch(e) {
+      throw ServerException(errorMessage: e.code.split("-").join(" "));
+    } catch (e) {
+      throw ServerException(errorMessage: "Failed Login With Google");
+    }
   }
 
   @override
@@ -53,9 +77,9 @@ class UserAuthRemoteDataSource implements BaseUserAuthRemoteDataSource {
       } else if (e.code == 'wrong-password') {
         throw ServerException(errorMessage: "Wrong password provided for that user.");
       }
-      throw ServerException(errorMessage: "*******Test ${e.credential}");
+      throw ServerException(errorMessage: "*******Test ${e.code.split("-").join(" ")}");
     } catch(e) {
-      throw ServerException(errorMessage: "Errror");
+      throw ServerException(errorMessage: 'Sign out failed: ${e.toString()}');
     }
   }
 

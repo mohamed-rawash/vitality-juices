@@ -12,31 +12,46 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: BlocConsumer<AuthCubit, AuthState>(
-          listener: (context, state) => {
-            if(state is SignOutSuccessfulState) {
-              Navigator.pushReplacement(context, FadeTransitionAnimation(page: const LoginScreen()))
-            } else {
-            print(state.props.first)
-            }
-          },
-          builder: (context, state) {
-            return state is SignUpLoadingState ?const Center(child: CircularProgressIndicator(),):Column(
-              children: [
-                AuthButton(
-                  text: "log out",
-                  onPressed: () async {
-                    await AuthCubit.get(context).signOut();
-                  },
-                ),
-                Text("${state is SignUpSuccessfulState? state.userAuthModel.userName:"name"}")
-              ],
-            );
-          },
-        ),
-      ),
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        // TODO: implement listener
+      },
+      builder: (context, state) {
+        return Scaffold(
+          key: AuthCubit.get(context).scaffoldKey,
+          body: SafeArea(
+            child: Center(
+              child: BlocConsumer<AuthCubit, AuthState>(
+                listener: (context, state) => {
+                  if (state is SignOutSuccessfulState)
+                    {
+                      Navigator.pushReplacement(context,
+                          FadeTransitionAnimation(page: const LoginScreen()))
+                    }
+                },
+                builder: (context, state) {
+                  return state is SignUpLoadingState
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : Column(
+                          children: [
+                            AuthButton(
+                              text: "log out",
+                              onPressed: () async {
+                                await AuthCubit.get(context).signOut();
+                              },
+                            ),
+                            Text(
+                                "${state is SignUpSuccessfulState ? state.userAuthModel.userName : "name"}")
+                          ],
+                        );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

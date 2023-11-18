@@ -9,7 +9,7 @@ abstract class BaseUserAuthRepository {
   Future<Either<Failure, User>> signUp(SignUpParameters parameters);
   Future<Either<Failure, User>> signIn(SignInParameters parameters);
   Future<Either<Failure, void>> signOut();
-  Future<Either<Failure, void>> googleSignIn();
+  Future<Either<Failure, User>> googleSignIn();
   Future<Either<Failure, void>> githubSignIn();
   Future<Either<Failure, void>> facebookSignIn();
   Future<Either<Failure, void>> twitterSignIn();

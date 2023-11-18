@@ -22,7 +22,13 @@ class CustomAuthTextField extends StatelessWidget {
           enabledBorder: buildSearchTextInputBorder(),
           focusedBorder: buildSearchTextInputBorder(),
           errorBorder: buildSearchTextInputBorder(),
-          errorStyle: textFieldLabelStyle()
+          focusedErrorBorder: buildSearchTextInputBorder(),
+          errorStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.normal,
+            decoration: TextDecoration.none,
+            color: Colors.red,
+          )
         ),
         obscureText: show ?? false,
         obscuringCharacter: "*",
@@ -37,7 +43,7 @@ class CustomAuthTextField extends StatelessWidget {
   OutlineInputBorder buildSearchTextInputBorder() {
     return OutlineInputBorder(
       borderSide: const BorderSide(
-        color: AppColors.green,
+        color: AppColors.darkPurple,
         width: 2,
       ),
       borderRadius: BorderRadius.circular(12),
@@ -49,7 +55,7 @@ class CustomAuthTextField extends StatelessWidget {
       fontSize: 18,
       fontWeight: FontWeight.normal,
       decoration: TextDecoration.none,
-      color: Colors.white,
+      color: Colors.black,
     );
   }
 }

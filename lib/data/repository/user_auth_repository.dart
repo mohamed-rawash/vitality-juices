@@ -26,9 +26,13 @@ class UserAuthRepository extends BaseUserAuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> googleSignIn() {
-    // TODO: implement googleSignIn
-    throw UnimplementedError();
+  Future<Either<Failure, User>> googleSignIn() async {
+    try {
+      final result = await userAuthRemoteDataSource.googleSignIn();
+      return Right(result);
+    } on ServerException catch(failure) {
+      return Left(ServerFailure(message: failure.errorMessage));
+    }
   }
 
   @override
